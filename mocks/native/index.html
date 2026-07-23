@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PurrfectMatch Concept</title>
+    <style>
+        :root {
+            --peach: #ffdab9;
+            --cream: #fffdd0;
+            --accent: #ff8c69;
+            --text: #5d4037;
+        }
+        body {
+            margin: 0; padding: 0; font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, var(--peach), var(--cream));
+            color: var(--text); height: 100vh; display: flex; flex-direction: column; align-items: center; overflow: hidden;
+        }
+        header {
+            text-align: center; padding: 2rem 1rem;
+        }
+        h1 {
+            font-size: 3rem; margin: 0; color: var(--accent); font-weight: 800;
+            letter-spacing: -1px; filter: drop-shadow(2px 2px 0px white);
+        }
+        p {
+            font-style: italic; opacity: 0.8; margin-top: 0.5rem;
+        }
+        .stage {
+            position: relative; width: 320px; height: 450px; perspective: 1000px;
+        }
+        .card {
+            position: absolute; width: 100%; height: 100%; background: white;
+            border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            cursor: grab; transition: transform 0.1s ease-out;
+            display: flex; flex-direction: column; overflow: hidden; user-select: none;
+            touch-action: none;
+        }
+        .card-img {
+            height: 70%; background: #eee; display: flex; align-items: center; justify-content: center;
+            font-size: 5rem; background: linear-gradient(to bottom, #ffe4e1, #fff);
+        }
+        .card-info {
+            padding: 1.5rem; text-align: center;
+        }
+        .card-info h2 { margin: 0; font-size: 1.5rem; }
+        .card-info p { margin: 5px 0 0; font-size: 0.9rem; }
+        .feedback {
+            position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+            font-size: 3rem; font-weight: bold; opacity: 0; pointer-events: none;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .match-heart {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            font-size: 6rem; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PurrfectMatch</h1>
+        <p>Find your feline's forever playmate.</p>
+    </header>
+    <div class="stage">
+        <div id="feedback" class="feedback"></div>
+        <div id="heart" class="match-heart">❤️</div>
+        <div id="card" class="card">
+            <div class="card-img">🐱</div>
+            <div class="card-info">
+                <h2>Mochi, 2</h2>
+                <p>Loves cardboard boxes & midnight zooms.</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const card = document.getElementById('card');
+        const feedback = document.getElementById('feedback');
+        const heart = document.getElementById('heart');
+        let startX = 0, currentX = 0, isDragging = false;
+
+        const onStart = (e) => {
+            isDragging = true;
+            startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            card.style.transition = 'none';
+        };
+
+        const onMove = (e) => {
+            if (!isDragging) return;
+            currentX = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - startX;
+            const rotation = currentX / 15;
+            card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+            
+            if (currentX > 50) { feedback.innerText = 'PURR'; feedback.style.opacity = 0.5; feedback.style.color = 'green'; }
+            else if (currentX < -50) { feedback.innerText = 'HISS'; feedback.style.opacity = 0.5; feedback.style.color = 'red'; }
+            else { feedback.style.opacity = 0; }
+        };
+
+        const onEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            card.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            
+            if (Math.abs(currentX) > 120) {
+                const dir = currentX > 0 ? 1 : -1;
+                card.style.transform = `translateX(${dir * 1000}px) rotate(${dir * 45}deg)`;
+                if (dir === 1) {
+                    heart.style.transform = 'translate(-50%, -50%) scale(1)';
+                    setTimeout(() => { heart.style.transform = 'translate(-50%, -50%) scale(0)'; }, 800);
+                }
+                setTimeout(() => {
+                    card.style.transition = 'none';
+                    card.style.transform = 'translateX(0) rotate(0)';
+                    currentX = 0;
+                    feedback.style.opacity = 0;
+                }, 1000);
+            } else {
+                card.style.transform = 'translateX(0) rotate(0)';
+                feedback.style.opacity = 0;
+            }
+        };
+
+        card.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+        card.addEventListener('touchstart', onStart);
+        window.addEventListener('touchmove', onMove);
+        window.addEventListener('touchend', onEnd);
+    </script>
+</body>
+</html>
